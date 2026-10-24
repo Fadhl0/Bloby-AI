@@ -6,7 +6,7 @@ import type { UIMessage } from 'ai'
 const route = useRoute()
 const toast = useToast()
 const { model } = useModels()
-const { webSearch, reasoning } = useChatSettings()
+const { reasoning } = useChatSettings()
 const { csrf, headerName } = useCsrf()
 
 const { data } = await useFetch(`/api/chats/${route.params.id}`, {
@@ -47,7 +47,6 @@ const { messages, status, error, sendMessage, regenerate, stop } = useChat({
     headers: { [headerName]: csrf },
     body: () => ({
       model: model.value,
-      webSearch: webSearch.value,
       reasoning: reasoning.value
     })
   }),
@@ -203,7 +202,7 @@ onMounted(() => {
       <div ref="dropzoneRef" class="flex flex-1">
         <DragDropOverlay v-if="isOwner" :show="dragging" />
 
-        <UContainer class="flex-1 flex flex-col gap-4 sm:gap-6">
+        <UContainer class="flex-1 flex flex-col gap-4 sm:gap-6 mb-4">
           <UChatMessages
             should-auto-scroll
             :messages="messages"

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ChatStatus } from 'ai'
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   status?: ChatStatus
   error?: Error
   files?: FileWithStatus[]
@@ -23,19 +23,6 @@ const emit = defineEmits<{
 }>()
 
 const input = defineModel<string>({ default: '' })
-
-const dictation = ref<'idle' | 'recording' | 'transcribing'>('idle')
-const dictationPreview = ref('')
-const placeholder = computed(() => {
-  if (dictation.value === 'idle') return undefined
-  return dictationPreview.value || (dictation.value === 'recording' ? 'Listening...' : 'Transcribing...')
-})
-
-const canDictate = computed(() => dictation.value !== 'idle' || (props.status === 'ready' && !input.value.trim() && !props.files.length))
-
-function appendTranscript(text: string) {
-  input.value = input.value.trim() ? `${input.value.trimEnd()} ${text}` : text
-}
 </script>
 
 <template>
@@ -44,10 +31,9 @@ function appendTranscript(text: string) {
     :status="status"
     :error="error"
     :disabled="uploading || disabled"
-    :placeholder="placeholder"
-    color="neutral"
+    color="primary"
     variant="subtle"
-    :ui="{ base: ['px-1.5', dictation !== 'idle' && 'placeholder:italic'] }"
+    :ui="{ base: ['px-1.5', 'outline-red-100'] }"
     @submit="emit('submit', $event)"
   >
     <template v-if="files.length > 0" #header>
@@ -60,18 +46,12 @@ function appendTranscript(text: string) {
       <div class="flex items-center gap-1">
         <ModelSelect />
 
-        <ChatDictateButton
-          v-if="canDictate"
-          v-model:state="dictation"
-          v-model:preview="dictationPreview"
-          :disabled="uploading || disabled"
-          @transcript="appendTranscript"
-        />
         <UChatPromptSubmit
-          v-else
           :status="status"
           :disabled="uploading || disabled"
-          color="neutral"
+          :color="(uploading || disabled) ? 'neutral' : 'primary'"
+          :variant="(uploading || disabled) ? 'outline' : 'solid'"
+          :class="[uploading || disabled? 'cursor-not-allowed' : 'cursor-pointer']"
           size="sm"
           @stop="emit('stop')"
           @reload="emit('reload')"

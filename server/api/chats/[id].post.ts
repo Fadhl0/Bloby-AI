@@ -3,12 +3,7 @@ import { convertToModelMessages, createUIMessageStream, createUIMessageStreamRes
 import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
-import type { AnthropicLanguageModelOptions } from '@ai-sdk/anthropic'
-import { anthropic } from '@ai-sdk/anthropic'
-import type { GoogleLanguageModelOptions } from '@ai-sdk/google'
-// import { google } from '@ai-sdk/google'
-import type { OpenAILanguageModelResponsesOptions } from '@ai-sdk/openai'
-import { openai } from '@ai-sdk/openai'
+import { openrouter } from '@openrouter/ai-sdk-provider'
 
 defineRouteMeta({
   openAPI: {
@@ -24,12 +19,11 @@ export default defineEventHandler(async (event) => {
     id: z.string()
   }).parse)
 
-  const { model, messages, webSearch, reasoning } = await readValidatedBody(event, z.object({
+  const { model, messages, reasoning } = await readValidatedBody(event, z.object({
     model: z.string().refine(value => MODELS.some(m => m.value === value), {
       message: 'Invalid model'
     }),
     messages: z.array(z.custom<UIMessage>()),
-    webSearch: z.boolean().default(true),
     reasoning: z.boolean().default(true)
   }).parse)
 
@@ -48,7 +42,8 @@ export default defineEventHandler(async (event) => {
 
   if (!chat.title) {
     const { text: title } = await generateText({
-      model: 'openai/gpt-5-nano',
+      // Use the first free model for titles, swap for any OpenRouter model id
+      model: openrouter(MODELS[0]!.value),
       instructions: `You are a title generator for a chat:
           - Generate a short title based on the first user's message
           - The title should be less than 30 characters long
@@ -71,27 +66,6 @@ export default defineEventHandler(async (event) => {
     }).onConflictDoUpdate({ target: schema.messages.id, set: { parts: lastMessage.parts } })
   }
 
-  // Web search is a provider-defined tool, only available on Anthropic and OpenAI models.
-  // TODO: enable Google once AI SDK supports combining provider-defined tools with custom tools
-  // ...(model.startsWith('google/') && { google_search: google.tools.googleSearch({}) })
-  const webSearchTool = webSearch
-    ? model.startsWith('anthropic/')
-      ? anthropic.tools.webSearch_20250305()
-      : model.startsWith('openai/')
-        ? openai.tools.webSearch()
-        : undefined
-    : undefined
-
-  const webSearchInstructions = webSearchTool
-    ? `**WEB SEARCH:**
-- You have access to a web search tool to find current, up-to-date information
-- Only use it when the user explicitly asks about recent events, real-time data, or current facts
-- Do NOT search proactively — rely on your knowledge first
-- Cite your sources when providing information from web search results
-
-`
-    : ''
-
   const abortController = new AbortController()
   event.node.req.on('close', () => abortController.abort())
 
@@ -99,7 +73,7 @@ export default defineEventHandler(async (event) => {
     execute: async ({ writer }) => {
       const result = streamText({
         abortSignal: abortController.signal,
-        model,
+        model: openrouter(model),
         instructions: `You are a knowledgeable and helpful AI assistant. ${session.user?.username ? `The user's name is ${session.user.username}.` : ''} Your goal is to provide clear, accurate, and well-structured responses.
 
 **FORMATTING RULES (CRITICAL):**
@@ -111,7 +85,7 @@ export default defineEventHandler(async (event) => {
   * Instead of "# Complete Guide", write "**Complete Guide**" or start directly with content
 - Start all responses with content, never with a heading
 
-${webSearchInstructions}**RESPONSE QUALITY:**
+**RESPONSE QUALITY:**
 - Be concise yet comprehensive
 - Use examples when helpful
 - Break down complex topics into digestible parts
@@ -119,27 +93,14 @@ ${webSearchInstructions}**RESPONSE QUALITY:**
         messages: await convertToModelMessages(messages),
         tools: {
           chart: chartTool,
-          weather: weatherTool,
-          ...(webSearchTool && { web_search: webSearchTool })
+          weather: weatherTool
         },
         providerOptions: {
-          anthropic: {
-            thinking: reasoning
-              ? { type: 'enabled', budgetTokens: 2048 }
-              : { type: 'disabled' }
-          } satisfies AnthropicLanguageModelOptions,
-          google: {
-            // Gemini 3 always thinks, the toggle only controls whether the thoughts are shown
-            thinkingConfig: {
-              includeThoughts: reasoning,
-              thinkingLevel: 'low'
-            }
-          } satisfies GoogleLanguageModelOptions,
-          openai: {
-            // The web search tool is rejected at minimal effort
-            reasoningEffort: reasoning || webSearchTool ? 'low' : 'minimal',
-            ...(reasoning && { reasoningSummary: 'detailed' })
-          } satisfies OpenAILanguageModelResponsesOptions
+          openrouter: {
+            reasoning: reasoning
+              ? { effort: 'low' }
+              : { enabled: false }
+          }
         },
         stopWhen: isStepCount(5),
         experimental_transform: smoothStream()

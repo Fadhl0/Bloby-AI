@@ -3,6 +3,7 @@
 
 @theme static {
   --font-sans: 'Public Sans', sans-serif;
+	--color-app: #a399ff;
 }
 
 @layer base {

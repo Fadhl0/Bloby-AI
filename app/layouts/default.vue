@@ -79,7 +79,7 @@ defineShortcuts({
       collapsible
       resizable
       :menu="{ inset: true }"
-      class="border-r-0 py-4 dark:[--ui-bg-elevated:var(--ui-color-neutral-900)]"
+      class="border-r-0 py-4 dark:[--ui-bg-elevated:var(--ui-color-neutral-900)] select-none"
     >
       <template #header="{ collapsed }">
         <NuxtLink
@@ -88,10 +88,10 @@ defineShortcuts({
           class="flex items-end gap-0.5 outline-primary/25 focus-visible:outline-3 rounded-md"
         >
           <Logo class="h-8 w-auto shrink-0" />
-          <span class="text-xl font-bold text-highlighted">Chat</span>
+          <span class="text-xl font-bold text-highlighted pb-0.5 ml-1.5">{{ $config.public.name }}</span>
         </NuxtLink>
 
-        <UDashboardSidebarCollapse class="ms-auto" />
+        <UDashboardSidebarCollapse class="ms-auto" icon="i-lucide-panel-left" />
       </template>
 
       <template #default="{ collapsed }">

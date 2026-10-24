@@ -17,8 +17,9 @@ useHead({
   }
 })
 
-const title = 'Nuxt AI Chatbot template'
-const description = 'A full-featured, hackable Nuxt AI chatbot template made with Nuxt UI.'
+const appName = useRuntimeConfig().public.name
+const title = `${appName}: AI Chatbot, MCQ Exam Generator & Humanizer`
+const description = `${appName} lets you build AI chatbots, get Bahçeşehir University info, generate interactive MCQ exams, and humanize text naturally. Smarter study tools in minutes.`
 
 useSeoMeta({
   title,

@@ -6,11 +6,7 @@ const props = defineProps<{
 }>()
 
 const { loggedIn } = useUserSession()
-const { model } = useModels()
-const { webSearch, reasoning } = useChatSettings()
-
-// Web search is a provider-defined tool, only available on Anthropic and OpenAI models.
-const supportsWebSearch = computed(() => !model.value.startsWith('google/'))
+const { reasoning } = useChatSettings()
 
 defineShortcuts({
   meta_u: {
@@ -31,17 +27,6 @@ const items = computed<DropdownMenuItem[][]>(() => [[{
   description: loggedIn.value ? undefined : 'Login required',
   onSelect: () => props.open()
 }], [{
-  label: 'Web search',
-  icon: 'i-lucide-globe',
-  type: 'checkbox',
-  checked: webSearch.value && supportsWebSearch.value,
-  disabled: !supportsWebSearch.value,
-  description: supportsWebSearch.value ? undefined : 'Not available with this model',
-  onUpdateChecked: (checked: boolean) => {
-    webSearch.value = checked
-  },
-  onSelect: (e: Event) => e.preventDefault()
-}, {
   label: 'Extended thinking',
   icon: 'i-lucide-brain',
   type: 'checkbox',
