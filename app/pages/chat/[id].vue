@@ -169,6 +169,10 @@ onMounted(() => {
     regenerate()
   }
 })
+
+useHead({
+  title: `${title.value} - ${useRuntimeConfig().public.name}`
+})
 </script>
 
 <template>
@@ -202,7 +206,7 @@ onMounted(() => {
       <div ref="dropzoneRef" class="flex flex-1">
         <DragDropOverlay v-if="isOwner" :show="dragging" />
 
-        <UContainer class="flex-1 flex flex-col gap-4 sm:gap-6 mb-4">
+        <UContainer class="flex-1 flex flex-col gap-4 sm:gap-6 mb-4 scrollbar-thumb-primary scrollbar-track-primary">
           <UChatMessages
             should-auto-scroll
             :messages="messages"

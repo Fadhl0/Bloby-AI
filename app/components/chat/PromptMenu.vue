@@ -45,13 +45,15 @@ const items = computed<DropdownMenuItem[][]>(() => [[{
     :ui="{ content: 'w-52' }"
     size="sm"
   >
-    <UButton
-      icon="i-lucide-plus"
-      color="neutral"
-      variant="ghost"
-      size="sm"
-      aria-label="Open prompt menu"
-      class="data-[state=open]:bg-elevated"
-    />
+    <UTooltip text="Add files, enable thinking mode.">
+      <UButton
+        icon="i-lucide-plus"
+        color="neutral"
+        variant="ghost"
+        size="sm"
+        aria-label="Open prompt menu"
+        class="data-[state=open]:bg-elevated"
+      />
+    </UTooltip>
   </UDropdownMenu>
 </template>

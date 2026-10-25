@@ -37,6 +37,11 @@ const emit = defineEmits<{
         v-else-if="getToolName(part) === 'weather'"
         :invocation="{ ...(part as WeatherUIToolInvocation) }"
       />
+      <ChatToolQuiz
+        v-else-if="getToolName(part) === 'quiz'"
+        :invocation="{ ...(part as QuizUIToolInvocation) }"
+      />
+      <!-- removed -->
       <UChatTool
         v-else-if="getToolName(part) === 'web_search' || getToolName(part) === 'google_search'"
         :text="isToolStreaming(part) ? 'Searching the web...' : 'Searched the web'"

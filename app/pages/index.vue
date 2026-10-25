@@ -60,7 +60,6 @@ async function onSubmit() {
 }
 
 const quickChats = [
-  'What does BAU stand for?',
   'Make my report sound less AI-generated',
   'Convert this file into interactive MCQs',
   'Why should I learn LangChain?'

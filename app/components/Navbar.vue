@@ -10,7 +10,9 @@
     <template #right>
       <slot />
 
-      <UColorModeButton />
+      <UTooltip text="Change Theme">
+        <UColorModeButton />
+      </UTooltip>
 
       <UButton
         color="neutral"

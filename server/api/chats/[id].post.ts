@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
       message: 'Invalid model'
     }),
     messages: z.array(z.custom<UIMessage>()),
-    reasoning: z.boolean().default(true)
+    reasoning: z.boolean().default(false)
   }).parse)
 
   const chat = await db.query.chats.findFirst({
@@ -42,8 +42,7 @@ export default defineEventHandler(async (event) => {
 
   if (!chat.title) {
     const { text: title } = await generateText({
-      // Use the first free model for titles, swap for any OpenRouter model id
-      model: openrouter(MODELS[0]!.value),
+      model: openrouter('nvidia/nemotron-3.5-lightning:free'),
       instructions: `You are a title generator for a chat:
           - Generate a short title based on the first user's message
           - The title should be less than 30 characters long
@@ -89,11 +88,15 @@ export default defineEventHandler(async (event) => {
 - Be concise yet comprehensive
 - Use examples when helpful
 - Break down complex topics into digestible parts
-- Maintain a friendly, professional tone`,
+- Maintain a friendly, professional tone
+
+**TOOLS:**
+- quiz: ALWAYS call the quiz tool when the user asks for a quiz, MCQs, a test, or practice, including when they paste questions. Never rewrite the questions as text or code. Reply with at most one short sentence after the tool runs.`,
         messages: await convertToModelMessages(messages),
         tools: {
           chart: chartTool,
-          weather: weatherTool
+          weather: weatherTool,
+          quiz: quizTool
         },
         providerOptions: {
           openrouter: {
