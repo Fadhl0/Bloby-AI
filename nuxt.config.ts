@@ -17,6 +17,13 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
+    OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+    oauth: {
+      github: {
+        clientId: process.env.NUXT_OAUTH_GITHUB_CLIENT_ID,
+        clientSecret: process.env.NUXT_OAUTH_GITHUB_CLIENT_SECRET
+      }
+    },
     public: {
       name: 'Bloby'
     }
