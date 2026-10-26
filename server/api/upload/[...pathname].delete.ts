@@ -3,11 +3,11 @@ import { blob } from 'hub:blob'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
-  const { username } = user
+  const { id } = user
 
   const pathname = getRouterParam(event, 'pathname', { decode: true })
 
-  if (!pathname?.startsWith(`${username}/`)) {
+  if (!pathname?.startsWith(`${id}/`)) {
     throw createError({
       status: 403,
       statusText: 'You do not have permission to delete this file'

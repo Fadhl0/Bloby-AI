@@ -4,6 +4,8 @@ import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { openrouter } from '@openrouter/ai-sdk-provider'
+import { blob } from 'hub:blob'
+import { humanizerTool } from '~~/shared/utils/tools/humanizer'
 
 defineRouteMeta({
   openAPI: {
@@ -11,6 +13,51 @@ defineRouteMeta({
     tags: ['ai']
   }
 })
+
+async function resolveFileParts(messages: UIMessage[]): Promise<UIMessage[]> {
+  return Promise.all(
+    messages.map(async (message) => {
+      // Skip messages that carry no file parts (assistant turns, plain text).
+      if (!message.parts.some(part => part.type === 'file')) return message
+
+      const parts: typeof message.parts = await Promise.all(
+        message.parts.map(async (part) => {
+          if (part.type !== 'file') return part
+
+          // `part.url` is the R2 pathname (e.g. "<userId>/<chatId>/notes-a1b2c3.md"),
+          // NOT a public URL — see the client sending logic.
+          console.log('[resolveFileParts] fetching pathname:', part.url)
+          const fileBlob = await blob.get(part.url)
+          console.log('[resolveFileParts] got blob?', fileBlob ? 'yes' : 'NO', 'size:', fileBlob?.size)
+
+          try {
+            const fileBlob = await blob.get(part.url)
+            if (!fileBlob) {
+              return {
+                type: 'text' as const,
+                text: `_(Attached file "${part.filename ?? part.url}" is no longer available.)_\n\n`
+              }
+            }
+
+            const text = await fileBlob.text()
+            return {
+              type: 'text' as const,
+              text: `**Attached file: ${part.filename ?? 'file'}**\n\n\`\`\`\n${text}\n\`\`\`\n\n`
+            }
+          } catch (error) {
+            console.error('[resolveFileParts] Failed to read file from R2:', part.url, error)
+            return {
+              type: 'text' as const,
+              text: `_(Could not read attached file "${part.filename ?? part.url}".)_\n\n`
+            }
+          }
+        })
+      )
+
+      return { ...message, parts }
+    })
+  )
+}
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)
@@ -27,6 +74,12 @@ export default defineEventHandler(async (event) => {
     reasoning: z.boolean().default(false)
   }).parse)
 
+  console.log('[chat] RAW last user parts:', JSON.stringify(
+    messages.at(-1)?.parts,
+    (key, val) => key === 'url' ? val?.slice(0, 120) + (val?.length > 120 ? '…' : '') : val,
+    2
+  ))
+
   const chat = await db.query.chats.findFirst({
     where: () => and(
       eq(schema.chats.id, id as string),
@@ -40,6 +93,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Chat not found' })
   }
 
+  const resolvedMessages = await resolveFileParts(messages)
+
   if (!chat.title) {
     const { text: title } = await generateText({
       model: openrouter('nvidia/nemotron-3.5-lightning:free'),
@@ -49,7 +104,7 @@ export default defineEventHandler(async (event) => {
           - The title should be a summary of the user's message
           - Do not use quotes (' or ") or colons (:) or any other punctuation
           - Do not use markdown, just plain text`,
-      prompt: JSON.stringify(messages[0])
+      prompt: JSON.stringify(resolvedMessages[0])
     })
 
     await db.update(schema.chats).set({ title }).where(eq(schema.chats.id, id as string))
@@ -93,11 +148,12 @@ export default defineEventHandler(async (event) => {
 
 **TOOLS:**
 - quiz: ALWAYS call the quiz tool when the user asks for a quiz, MCQs, a test, or practice, including when they paste questions. Never rewrite the questions as text or code. Reply with at most one short sentence after the tool runs.`,
-        messages: await convertToModelMessages(messages),
+        messages: await convertToModelMessages(resolvedMessages),
         tools: {
           chart: chartTool,
           weather: weatherTool,
-          quiz: quizTool
+          quiz: quizTool,
+          humanizer: humanizerTool(model)
         },
         providerOptions: {
           openrouter: {

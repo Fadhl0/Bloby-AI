@@ -20,7 +20,7 @@ defineShortcuts({
 })
 
 const items = computed<DropdownMenuItem[][]>(() => [[{
-  label: 'Add files or photos',
+  label: 'Add files (.md, .txt)',
   icon: 'i-lucide-paperclip',
   kbds: ['meta', 'U'],
   disabled: !loggedIn.value,

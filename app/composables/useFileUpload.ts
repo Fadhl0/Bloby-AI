@@ -1,3 +1,5 @@
+import type { FileUIPart } from 'ai'
+
 interface BlobResult {
   pathname: string
   url?: string
@@ -101,13 +103,15 @@ export function useFileUploadWithStatus(chatId: string) {
     files.value.some(f => f.status === 'uploading')
   )
 
-  const uploadedFiles = computed(() =>
+  const uploadedFiles = computed<FileUIPart[]>(() =>
     files.value
-      .filter(f => f.status === 'uploaded' && f.uploadedUrl)
+      .filter(f => f.status === 'uploaded' && f.uploadedPathname)
       .map(f => ({
         type: 'file' as const,
-        mediaType: f.file.type,
-        url: f.uploadedUrl!
+        mediaType: f.file.type
+          || (f.file.name.endsWith('.md') ? 'text/markdown' : 'text/plain'),
+        filename: f.file.name,
+        url: f.uploadedPathname!
       }))
   )
 

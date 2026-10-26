@@ -10,14 +10,17 @@ export interface FileWithStatus {
 
 export const FILE_UPLOAD_CONFIG = {
   maxSize: '8MB',
-  types: ['image', 'application/pdf', 'text/csv'],
-  acceptPattern: 'image/*,application/pdf,.csv,text/csv'
+  types: ['text/plain', 'text/markdown'],
+  acceptPattern: '.txt,.md,text/plain,text/markdown,text/x-markdown'
 } as const
 
 export function getFileIcon(mimeType: string, fileName?: string): string {
-  if (mimeType.startsWith('image/')) return 'i-lucide-image'
-  if (mimeType === 'application/pdf') return 'i-lucide-file-text'
-  if (mimeType === 'text/csv' || fileName?.endsWith('.csv')) return 'i-lucide-file-spreadsheet'
+  if (mimeType === 'text/markdown' || fileName?.endsWith('.md')) {
+    return 'i-lucide-file-code'
+  }
+  if (mimeType === 'text/plain' || fileName?.endsWith('.txt')) {
+    return 'i-lucide-file-text'
+  }
   return 'i-lucide-file'
 }
 

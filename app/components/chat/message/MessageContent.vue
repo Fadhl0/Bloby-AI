@@ -41,6 +41,10 @@ const emit = defineEmits<{
         v-else-if="getToolName(part) === 'quiz'"
         :invocation="{ ...(part as QuizUIToolInvocation) }"
       />
+      <ChatToolHumanizer
+        v-else-if="getToolName(part) === 'humanizer'"
+        :invocation="{ ...(part as HumanizerUIToolInvocation) }"
+      />
       <!-- removed -->
       <UChatTool
         v-else-if="getToolName(part) === 'web_search' || getToolName(part) === 'google_search'"

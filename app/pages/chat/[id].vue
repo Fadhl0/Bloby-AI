@@ -226,7 +226,7 @@ useHead({
               <ChatFilePreview
                 v-for="(part, index) in parts"
                 :key="`${message.id}-${index}`"
-                :name="getFileName(part.url)"
+                :name="part.filename ?? getFileName(part.url)"
                 :type="part.mediaType"
                 :preview-url="part.url"
                 size="3xl"
