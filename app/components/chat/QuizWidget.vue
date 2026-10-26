@@ -27,18 +27,29 @@ const answers = ref<(number | null)[]>(questions.value.map(() => null))
 const question = computed(() => questions.value[current.value])
 const selected = computed(() => answers.value[current.value] ?? null)
 const isAnswered = computed(() => selected.value !== null)
-const isCorrect = computed(() => selected.value === question.value?.correctIndex)
+const isCorrect = computed(
+  () => selected.value === question.value?.correctIndex
+)
 const isLast = computed(() => current.value === total.value - 1)
 
-const score = computed(() =>
-  answers.value.filter((a, i) => a !== null && a === questions.value[i]?.correctIndex).length
+const score = computed(
+  () =>
+    answers.value.filter(
+      (a, i) => a !== null && a === questions.value[i]?.correctIndex
+    ).length
 )
-const unanswered = computed(() => answers.value.filter(a => a === null).length)
-const percent = computed(() => (total.value ? Math.round((score.value / total.value) * 100) : 0))
+const unanswered = computed(
+  () => answers.value.filter(a => a === null).length
+)
+const percent = computed(() =>
+  total.value ? Math.round((score.value / total.value) * 100) : 0
+)
 
 const verdict = computed(() => {
-  if (percent.value >= 80) return { label: 'Excellent work', color: 'success' as const }
-  if (percent.value >= 50) return { label: 'Good effort', color: 'primary' as const }
+  if (percent.value >= 80)
+    return { label: 'Excellent work', color: 'success' as const }
+  if (percent.value >= 50)
+    return { label: 'Good effort', color: 'primary' as const }
   return { label: 'Keep practicing', color: 'warning' as const }
 })
 
@@ -76,33 +87,57 @@ function reviewQuestion(index: number) {
 
 function optionStyle(index: number) {
   if (!isAnswered.value) {
-    return { color: 'neutral' as const, variant: 'outline' as const, icon: undefined }
+    return {
+      color: 'neutral' as const,
+      variant: 'outline' as const,
+      icon: undefined
+    }
   }
   if (index === question.value?.correctIndex) {
-    return { color: 'success' as const, variant: 'subtle' as const, icon: 'i-lucide-circle-check' }
+    return {
+      color: 'success' as const,
+      variant: 'subtle' as const,
+      icon: 'i-lucide-circle-check'
+    }
   }
   if (index === selected.value) {
-    return { color: 'error' as const, variant: 'subtle' as const, icon: 'i-lucide-circle-x' }
+    return {
+      color: 'error' as const,
+      variant: 'subtle' as const,
+      icon: 'i-lucide-circle-x'
+    }
   }
-  return { color: 'neutral' as const, variant: 'ghost' as const, icon: undefined }
+  return {
+    color: 'neutral' as const,
+    variant: 'ghost' as const,
+    icon: undefined
+  }
 }
 
 function dotClass(index: number) {
   const answer = answers.value[index]
-  const state = answer === null
-    ? 'bg-accented text-muted'
-    : answer === questions.value[index]?.correctIndex
-      ? 'bg-success text-inverted'
-      : 'bg-error text-inverted'
+  const state
+    = answer === null
+      ? 'bg-accented text-muted'
+      : answer === questions.value[index]?.correctIndex
+        ? 'bg-success text-inverted'
+        : 'bg-error text-inverted'
   const ring = index === current.value ? 'ring-2 ring-primary' : ''
-  return ['size-6 rounded-full text-xs font-medium transition focus-visible:outline-2 focus-visible:outline-primary', state, ring]
+  return [
+    'size-6 rounded-full text-xs font-medium transition focus-visible:outline-2 focus-visible:outline-primary',
+    state,
+    ring
+  ]
 }
 
 function dotLabel(index: number) {
   const answer = answers.value[index]
-  const status = answer === null
-    ? 'not answered'
-    : answer === questions.value[index]?.correctIndex ? 'correct' : 'incorrect'
+  const status
+    = answer === null
+      ? 'not answered'
+      : answer === questions.value[index]?.correctIndex
+        ? 'correct'
+        : 'incorrect'
   return `Question ${index + 1}, ${status}`
 }
 
@@ -127,7 +162,7 @@ function download() {
     title: 'Quiz downloaded',
     description: 'Open the HTML file in any browser.',
     icon: 'i-lucide-download',
-    color: 'success'
+    color: 'primary'
   })
 }
 </script>
@@ -198,7 +233,9 @@ function download() {
           :aria-pressed="selected === i"
           @click="select(i)"
         >
-          <span class="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-elevated text-xs font-semibold text-highlighted">
+          <span
+            class="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-elevated text-xs font-semibold text-highlighted"
+          >
             {{ LETTERS[i] }}
           </span>
           <span class="flex-1" dir="auto">{{ option }}</span>
@@ -212,7 +249,10 @@ function download() {
           :color="isCorrect ? 'success' : 'error'"
           :icon="isCorrect ? 'i-lucide-circle-check' : 'i-lucide-circle-x'"
           :title="isCorrect ? 'Correct!' : 'Not quite'"
-          :description="isCorrect ? undefined : `Correct answer: ${LETTERS[question.correctIndex]}. ${question.options[question.correctIndex]}`"
+          :description="isCorrect
+            ? undefined
+            : `Correct answer: ${LETTERS[question.correctIndex]}. ${question.options[question.correctIndex]}`
+          "
         />
       </div>
     </template>
@@ -228,7 +268,9 @@ function download() {
         </p>
         <UProgress :model-value="percent" :color="verdict.color" />
         <p v-if="unanswered" class="text-sm text-muted">
-          {{ unanswered }} unanswered {{ unanswered === 1 ? 'question was' : 'questions were' }} counted as incorrect.
+          {{ unanswered }} unanswered
+          {{ unanswered === 1 ? "question was" : "questions were" }} counted as
+          incorrect.
         </p>
       </div>
 
@@ -249,11 +291,7 @@ function download() {
               name="i-lucide-circle-x"
               class="mt-0.5 size-5 shrink-0 text-error"
             />
-            <UIcon
-              v-else
-              name="i-lucide-circle-dashed"
-              class="mt-0.5 size-5 shrink-0 text-muted"
-            />
+            <UIcon v-else name="i-lucide-circle-dashed" class="mt-0.5 size-5 shrink-0 text-muted" />
 
             <span class="min-w-0 flex-1">
               <span class="block text-sm font-medium text-highlighted" dir="auto">
@@ -280,18 +318,10 @@ function download() {
           Previous
         </UButton>
 
-        <UButton
-          v-if="!isLast"
-          trailing-icon="i-lucide-arrow-right"
-          @click="goTo(current + 1)"
-        >
+        <UButton v-if="!isLast" trailing-icon="i-lucide-arrow-right" @click="goTo(current + 1)">
           Next
         </UButton>
-        <UButton
-          v-else
-          trailing-icon="i-lucide-flag"
-          @click="finish"
-        >
+        <UButton v-else trailing-icon="i-lucide-flag" @click="finish">
           Finish
         </UButton>
       </div>

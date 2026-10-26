@@ -13,7 +13,7 @@ defineRouteMeta({
 })
 
 export default defineEventHandler(async (event) => {
-  const { user } = await requireUserSession(event)
+  const session = await getUserSession(event)
 
   const { id } = await getValidatedRouterParams(event, z.object({
     id: z.string()
@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
   const chat = await db.query.chats.findFirst({
     where: () => and(
       eq(schema.chats.id, id as string),
-      eq(schema.chats.userId, user.id)
+      eq(schema.chats.userId, session.user?.id || session.id)
     ),
     with: {
       messages: true
@@ -65,14 +65,16 @@ export default defineEventHandler(async (event) => {
     }).onConflictDoUpdate({ target: schema.messages.id, set: { parts: lastMessage.parts } })
   }
 
-  const abortSignal = event.node.req?.signal || event.web?.request?.signal
+  const abortController = new AbortController()
+
+  event.node.req.on('close', () => abortController.abort())
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
       const result = streamText({
-        abortSignal,
+        abortSignal: abortController.signal,
         model: openrouter(model),
-        instructions: `You are a knowledgeable and helpful AI assistant. ${user.name ? `The user's name is ${user.name}.` : ''} Your goal is to provide clear, accurate, and well-structured responses.
+        instructions: `You are a knowledgeable and helpful AI assistant. ${session.user?.name ? `The user's name is ${session.user?.name}.` : ''} Your goal is to provide clear, accurate, and well-structured responses.
 
 **FORMATTING RULES (CRITICAL):**
 - ABSOLUTELY NO MARKDOWN HEADINGS: Never use #, ##, ###, ####, #####, or ######
