@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui'
+import { useTimeoutFn } from '@vueuse/core'
+
 const props = defineProps<{
   invocation: HumanizerUIToolInvocation
 }>()
@@ -70,15 +73,23 @@ function download(ext: 'md' | 'txt') {
   })
 }
 
+const copyIcon = ref<string>('i-lucide-copy')
+
+const { start } = useTimeoutFn(() => {
+  copyIcon.value = 'i-lucide-copy'
+}, 2500, { immediate: false })
+
 async function copy() {
   try {
     await navigator.clipboard.writeText(draft.value)
+    copyIcon.value = 'i-lucide-copy-check'
     toast.add({
       title: 'Copied to clipboard',
       icon: 'i-lucide-check',
       color: 'primary',
       duration: 2500
     })
+    start()
   } catch {
     toast.add({
       title: 'Failed to copy',
@@ -87,6 +98,19 @@ async function copy() {
     })
   }
 }
+
+const items: DropdownMenuItem[] = [
+  {
+    label: 'Download as .md',
+    icon: 'i-lucide-file-text',
+    onSelect: () => download('md')
+  },
+  {
+    label: 'Download as .txt',
+    icon: 'i-lucide-file-type',
+    onSelect: () => download('txt')
+  }
+]
 </script>
 
 <template>
@@ -94,8 +118,8 @@ async function copy() {
     <!-- Header -->
     <div class="flex items-center justify-between gap-2 px-4 py-3 border-b border-default">
       <div class="flex items-center gap-2 min-w-0">
-        <div class="size-7 shrink-0 rounded-md flex items-center justify-center bg-linear-to-br from-primary-400 via-primary-900 to-primary-600 text-white">
-          <UIcon name="i-lucide-sparkles" class="size-4" />
+        <div class="size-7 shrink-0 rounded-md flex items-center justify-center">
+          <UIcon name="i-lucide-bot" class="size-6 bg-linear-to-br from-primary-200 via-primary-500 to-primary-300" />
         </div>
         <span class="text-sm font-medium truncate">Humanizer</span>
         <UBadge
@@ -111,7 +135,7 @@ async function copy() {
 
       <UButton
         v-if="isReady"
-        icon="i-lucide-copy"
+        :icon="copyIcon"
         label="Copy"
         size="xs"
         color="neutral"
@@ -131,22 +155,22 @@ async function copy() {
       />
 
       <div class="flex flex-wrap items-center gap-2">
-        <UButton
-          icon="i-lucide-file-text"
-          label="Download .md"
-          size="sm"
-          color="neutral"
-          variant="subtle"
-          @click="download('md')"
-        />
-        <UButton
-          icon="i-lucide-file-type"
-          label="Download .txt"
-          size="sm"
-          color="neutral"
-          variant="subtle"
-          @click="download('txt')"
-        />
+        <UFieldGroup>
+          <UButton
+            color="neutral"
+            variant="subtle"
+            label="Download"
+            icon="i-lucide-download"
+            @click="download('txt')"
+          />
+          <UDropdownMenu :items="items">
+            <UButton
+              color="neutral"
+              variant="subtle"
+              icon="i-lucide-chevron-down"
+            />
+          </UDropdownMenu>
+        </UFieldGroup>
 
         <div class="flex-1" />
 
