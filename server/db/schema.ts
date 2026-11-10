@@ -2,7 +2,10 @@ import { sqliteTable, text, integer, index, uniqueIndex, primaryKey } from 'driz
 import { relations } from 'drizzle-orm'
 
 const timestamps = {
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date())
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date())
 }
 
 export const users = sqliteTable('users', {

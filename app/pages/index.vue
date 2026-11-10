@@ -1,4 +1,11 @@
 <script setup lang="ts">
+const { loggedIn, openInPopup } = useUserSession()
+const showLoginNotice = ref(false)
+
+watch(loggedIn, (value) => {
+  if (value) showLoginNotice.value = false
+})
+
 const input = ref('')
 const loading = ref(false)
 const chatId = crypto.randomUUID()
@@ -11,7 +18,7 @@ const greeting = computed(() => {
   if (hour < 12) timeGreeting = 'Good morning'
   else if (hour < 18) timeGreeting = 'Good afternoon'
 
-  const name = user.value?.name?.split(' ')[0] || user.value?.username
+  const name = user.value?.name?.split(' ')[0] || user.value?.name
 
   return name ? `${timeGreeting}, ${name}` : `${timeGreeting}`
 })
@@ -55,15 +62,22 @@ async function createChat(prompt: string) {
 }
 
 async function onSubmit() {
+  if (!loggedIn.value) {
+    showLoginNotice.value = true
+    return // keep their typed text so they can send it after logging in
+  }
+
   await createChat(input.value)
   clearFiles()
 }
 
 const quickChats = [
-  'Make my report sound less AI-generated',
-  'Convert this file into interactive MCQs',
-  'Why should I learn LangChain?'
+  'Who are you?',
+  'Give me 5 practical productivity habits',
+  'Why learn coding in the age of AI?'
 ]
+
+const config = useRuntimeConfig()
 </script>
 
 <template>
@@ -110,6 +124,32 @@ const quickChats = [
             />
           </div>
         </UContainer>
+        <UModal :open="showLoginNotice">
+          <template #content>
+            <div class="h-48 m-4 flex justify-center flex-col content-center">
+              <UButton
+                icon="i-lucide-x"
+                color="error"
+                variant="subtle"
+                class="fixed top-2 right-2"
+                @click="showLoginNotice = false"
+              />
+              <UChatMessage
+                id="login-notice"
+                role="assistant"
+                class="w-fit mx-auto"
+                :parts="[{ type: 'text', text: `Please log in before using ${config.public.name}.` }]"
+              />
+              <UButton
+                label="Login with GitHub"
+                icon="i-simple-icons-github"
+                color="neutral"
+                class="text-center w-fit mx-auto"
+                @click="openInPopup('/auth/github')"
+              />
+            </div>
+          </template>
+        </UModal>
       </div>
     </template>
   </UDashboardPanel>

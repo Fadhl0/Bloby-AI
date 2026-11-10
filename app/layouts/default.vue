@@ -14,7 +14,8 @@ const { data: chats, refresh: refreshChats } = await useFetch('/api/chats', {
     label: chat.title || 'Untitled',
     to: `/chat/${chat.id}`,
     icon: 'i-lucide-message-circle',
-    createdAt: chat.createdAt
+    createdAt: chat.createdAt,
+    updatedAt: chat.updatedAt
   }))
 })
 

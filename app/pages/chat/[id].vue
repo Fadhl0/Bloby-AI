@@ -52,9 +52,15 @@ const { messages, status, error, sendMessage, regenerate, stop } = useChat({
   }),
   onData: async (dataPart) => {
     if (dataPart.type === 'data-chat-title') {
+      const chatId = data.value?.id
+      if (!chatId) return
+
       await refreshNuxtData('chats')
+
+      if (data.value?.id !== chatId) return
+
       const chatsCache = useNuxtData<{ id: string, label: string }[]>('chats')
-      const updated = chatsCache.data.value?.find(c => c.id === data.value!.id)
+      const updated = chatsCache.data.value?.find(c => c.id === chatId)
       if (updated && updated.label !== 'Untitled') {
         title.value = updated.label
       }
@@ -170,8 +176,12 @@ onMounted(() => {
   }
 })
 
+const config = useRuntimeConfig()
+
 useHead({
-  title: `${title.value} - ${useRuntimeConfig().public.name}`
+  title: computed(() =>
+    title.value ? `${title.value} - ${config.public.name}` : config.public.name
+  )
 })
 </script>
 
@@ -206,7 +216,7 @@ useHead({
       <div ref="dropzoneRef" class="flex flex-1">
         <DragDropOverlay v-if="isOwner" :show="dragging" />
 
-        <UContainer class="flex-1 flex flex-col gap-4 sm:gap-6 mb-4 scrollbar-thumb-primary scrollbar-thin">
+        <UContainer class="flex-1 flex flex-col gap-4 sm:gap-6 scrollbar-thumb-primary scrollbar-thin">
           <UChatMessages
             should-auto-scroll
             :messages="messages"
@@ -218,7 +228,7 @@ useHead({
               <div class="flex items-center gap-1.5">
                 <ChatIndicator />
 
-                <UChatShimmer text="Thinking..." class="text-sm" />
+                <UChatShimmer text="Hold up. Let me cook..." class="text-sm" :duration="1" />
               </div>
             </template>
 
@@ -263,12 +273,13 @@ useHead({
             :files="files"
             :uploading="uploading"
             :open="open"
-            class="sticky bottom-0 [view-transition-name:chat-prompt] rounded-b-none z-10"
+            class="sticky bottom-1 mb-4 [view-transition-name:chat-prompt] rounded-b-none z-10"
             @submit="handleSubmit"
             @stop="stop()"
             @reload="regenerate()"
             @remove="removeFile"
           />
+          <!-- <span class="mx-auto mb-2 w-fit block text-sm">{{ $config.public.name }} is AI and can make mistakes</span> -->
         </UContainer>
       </div>
     </template>

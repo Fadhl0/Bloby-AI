@@ -3,9 +3,9 @@ import { convertToModelMessages, createUIMessageStream, createUIMessageStreamRes
 import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { openrouter } from '@openrouter/ai-sdk-provider'
 import { blob } from 'hub:blob'
 import { humanizerTool } from '~~/shared/utils/tools/humanizer'
+import { useOpenRouter } from '~~/server/utils/openrouter'
 
 defineRouteMeta({
   openAPI: {
@@ -14,7 +14,7 @@ defineRouteMeta({
   }
 })
 
-async function resolveFileParts(messages: UIMessage[]): Promise<UIMessage[]> {
+async function resolveFileParts(messages: UIMessage[], ownerId: string): Promise<UIMessage[]> {
   return Promise.all(
     messages.map(async (message) => {
       // Skip messages that carry no file parts (assistant turns, plain text).
@@ -24,11 +24,14 @@ async function resolveFileParts(messages: UIMessage[]): Promise<UIMessage[]> {
         message.parts.map(async (part) => {
           if (part.type !== 'file') return part
 
-          // `part.url` is the R2 pathname (e.g. "<userId>/<chatId>/notes-a1b2c3.md"),
-          // NOT a public URL — see the client sending logic.
-          console.log('[resolveFileParts] fetching pathname:', part.url)
-          const fileBlob = await blob.get(part.url)
-          console.log('[resolveFileParts] got blob?', fileBlob ? 'yes' : 'NO', 'size:', fileBlob?.size)
+          // added
+          if (!part.url.startsWith(`${ownerId}/`) || part.url.includes('..')) {
+            return {
+              type: 'text' as const,
+              text: `_(Attached file "${part.filename ?? 'file'}" is not accessible.)_\n\n`
+            }
+          }
+          // end
 
           try {
             const fileBlob = await blob.get(part.url)
@@ -61,6 +64,7 @@ async function resolveFileParts(messages: UIMessage[]): Promise<UIMessage[]> {
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)
+  const provider = useOpenRouter(event)
 
   const { id } = await getValidatedRouterParams(event, z.object({
     id: z.string()
@@ -73,12 +77,6 @@ export default defineEventHandler(async (event) => {
     messages: z.array(z.custom<UIMessage>()),
     reasoning: z.boolean().default(false)
   }).parse)
-
-  console.log('[chat] RAW last user parts:', JSON.stringify(
-    messages.at(-1)?.parts,
-    (key, val) => key === 'url' ? val?.slice(0, 120) + (val?.length > 120 ? '…' : '') : val,
-    2
-  ))
 
   const chat = await db.query.chats.findFirst({
     where: () => and(
@@ -93,11 +91,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Chat not found' })
   }
 
-  const resolvedMessages = await resolveFileParts(messages)
+  const resolvedMessages = await resolveFileParts(messages, session.user?.id || session.id)
 
   if (!chat.title) {
     const { text: title } = await generateText({
-      model: openrouter('nvidia/nemotron-3.5-lightning:free'),
+      model: provider('nvidia/nemotron-3.5-lightning:free'),
       instructions: `You are a title generator for a chat:
           - Generate a short title based on the first user's message
           - The title should be less than 30 characters long
@@ -118,18 +116,24 @@ export default defineEventHandler(async (event) => {
       role: 'user',
       parts: lastMessage.parts
     }).onConflictDoUpdate({ target: schema.messages.id, set: { parts: lastMessage.parts } })
+
+    await db.update(schema.chats)
+      .set({ updatedAt: new Date() })
+      .where(eq(schema.chats.id, chat.id))
   }
 
   const abortController = new AbortController()
 
   event.node.req.on('close', () => abortController.abort())
 
+  const runtimeConfig = useRuntimeConfig(event)
+
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
       const result = streamText({
         abortSignal: abortController.signal,
-        model: openrouter(model),
-        instructions: `You are a knowledgeable and helpful AI assistant. ${session.user?.name ? `The user's name is ${session.user?.name}.` : ''} Your goal is to provide clear, accurate, and well-structured responses.
+        model: provider(model),
+        instructions: `You are **${runtimeConfig.public.name}** a knowledgeable and helpful AI assistant. an AI assistant created by **FADHL AL FADHILI** (GitHub: https://github.com/Fadhl0). ${session.user?.name ? `The user's name is ${session.user?.name}.` : ''} Your goal is to provide clear, accurate, and well-structured responses.
 
 **FORMATTING RULES (CRITICAL):**
 - ABSOLUTELY NO MARKDOWN HEADINGS: Never use #, ##, ###, ####, #####, or ######
@@ -153,12 +157,12 @@ export default defineEventHandler(async (event) => {
           chart: chartTool,
           weather: weatherTool,
           quiz: quizTool,
-          humanizer: humanizerTool(model)
+          humanizer: humanizerTool(provider(model))
         },
         providerOptions: {
           openrouter: {
             reasoning: reasoning
-              ? { effort: 'low' }
+              ? { effort: 'medium' }
               : { enabled: false }
           }
         },

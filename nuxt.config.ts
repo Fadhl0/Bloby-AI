@@ -10,6 +10,14 @@ export default defineNuxtConfig({
     'nuxt-csurf'
   ],
 
+  $development: {
+    nitro: {
+      experimental: {
+        openAPI: true
+      }
+    }
+  },
+
   $production: {
     nitro: { preset: 'cloudflare_pages' },
     hub: {
@@ -17,6 +25,11 @@ export default defineNuxtConfig({
         dialect: 'sqlite',
         driver: 'd1',
         connection: { databaseId: 'd8f852d9-5a38-47e7-a88a-43df27e6f299' }
+      },
+      blob: {
+        driver: 'cloudflare-r2',
+        bucketName: 'bolby-bucket',
+        binding: 'BLOB'
       }
     }
   },
@@ -28,18 +41,9 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
-    session: {
-      password: process.env.NUXT_SESSION_PASSWORD || ''
-    },
-    oauth: {
-      github: {
-        clientId: process.env.NUXT_OAUTH_GITHUB_CLIENT_ID,
-        clientSecret: process.env.NUXT_OAUTH_GITHUB_CLIENT_SECRET
-      }
-    },
-    OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+    openrouterApiKey: '',
     public: {
-      name: 'Bloby'
+      name: ''
     }
   },
 
@@ -48,11 +52,7 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: '2026-06-30',
-
   nitro: {
-    experimental: {
-      openAPI: true
-    },
     prerender: {
       autoSubfolderIndex: false
     }
