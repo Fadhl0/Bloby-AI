@@ -44,6 +44,11 @@ export default defineNuxtConfig({
     openrouterApiKey: '',
     public: {
       name: ''
+    },
+    session: {
+      name: 'bloby-session',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      password: ''
     }
   },
 

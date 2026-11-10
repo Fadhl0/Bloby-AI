@@ -36,6 +36,11 @@ const {
 const { csrf, headerName } = useCsrf()
 
 async function createChat(prompt: string) {
+  if (!loggedIn.value) {
+    showLoginNotice.value = true
+    return
+  }
+
   input.value = prompt
   loading.value = true
 
@@ -124,16 +129,19 @@ const config = useRuntimeConfig()
             />
           </div>
         </UContainer>
-        <UModal :open="showLoginNotice">
-          <template #content>
+
+        <UModal
+          :open="showLoginNotice"
+          title="Login Required"
+          close-icon="i-lucide-x"
+          :close="{
+            color: 'error',
+            variant: 'ghost',
+            onClick: () => showLoginNotice = false
+          }"
+        >
+          <template #body>
             <div class="h-48 m-4 flex justify-center flex-col content-center">
-              <UButton
-                icon="i-lucide-x"
-                color="error"
-                variant="subtle"
-                class="fixed top-2 right-2"
-                @click="showLoginNotice = false"
-              />
               <UChatMessage
                 id="login-notice"
                 role="assistant"
