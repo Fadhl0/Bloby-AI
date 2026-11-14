@@ -3,18 +3,5 @@
   "name": "blobyai",
   "pages_build_output_dir": "./dist",
   "compatibility_date": "2026-06-30",
-  "compatibility_flags": ["nodejs_compat"],
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "bolby-ai",
-      "database_id": "d8f852d9-5a38-47e7-a88a-43df27e6f299"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "BLOB",
-      "bucket_name": "bolby-bucket"
-    }
-  ]
+  "compatibility_flags": ["nodejs_compat"]
 }
