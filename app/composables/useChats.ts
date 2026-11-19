@@ -5,6 +5,7 @@ export interface UIChat {
   label: string
   icon: string
   createdAt: string
+  updatedAt: string
 }
 
 export function useChats(chats: Ref<UIChat[] | undefined>) {
@@ -20,7 +21,7 @@ export function useChats(chats: Ref<UIChat[] | undefined>) {
     const oneMonthAgo = subMonths(new Date(), 1)
 
     chats.value?.forEach((chat) => {
-      const chatDate = new Date(chat.createdAt)
+      const chatDate = new Date(chat.updatedAt)
 
       if (isToday(chatDate)) {
         today.push(chat)
