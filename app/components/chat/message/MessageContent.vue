@@ -41,9 +41,9 @@ const emit = defineEmits<{
         v-else-if="getToolName(part) === 'quiz'"
         :invocation="{ ...(part as QuizUIToolInvocation) }"
       />
-      <ChatToolHumanizer
-        v-else-if="getToolName(part) === 'humanizer'"
-        :invocation="{ ...(part as HumanizerUIToolInvocation) }"
+      <ChatToolDocument
+        v-else-if="getToolName(part) === 'document'"
+        :invocation="{ ...(part as DocumentUIToolInvocation) }"
       />
       <!-- removed -->
       <UChatTool

@@ -92,7 +92,23 @@ export default defineNuxtConfig({
         '@shikijs/langs/sql',
         '@shikijs/langs/swift',
         '@shikijs/langs/toml',
-        '@shikijs/langs/xml'
+        '@shikijs/langs/xml',
+        '@nuxt/ui > prosemirror-state',
+        '@nuxt/ui > prosemirror-transform',
+        '@nuxt/ui > prosemirror-model',
+        '@nuxt/ui > prosemirror-view',
+        '@nuxt/ui > prosemirror-gapcursor',
+        '@tiptap/pm/state',
+        '@tiptap/pm/view'
+      ]
+    },
+    resolve: {
+      dedupe: [
+        'prosemirror-model',
+        'prosemirror-state',
+        'prosemirror-transform',
+        'prosemirror-view',
+        '@tiptap/core'
       ]
     }
   },

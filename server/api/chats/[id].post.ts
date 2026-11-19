@@ -4,7 +4,7 @@ import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { blob } from 'hub:blob'
-import { humanizerTool } from '~~/shared/utils/tools/humanizer'
+import { documentTool } from '~~/shared/utils/tools/document'
 import { useOpenRouter } from '~~/server/utils/openrouter'
 
 defineRouteMeta({
@@ -151,13 +151,14 @@ export default defineEventHandler(async (event) => {
 - Maintain a friendly, professional tone
 
 **TOOLS:**
-- quiz: ALWAYS call the quiz tool when the user asks for a quiz, MCQs, a test, or practice, including when they paste questions. Never rewrite the questions as text or code. Reply with at most one short sentence after the tool runs.`,
+- quiz: ALWAYS call the quiz tool when the user asks for a quiz, MCQs, a test, or practice, including when they paste questions. Never rewrite the questions as text or code. Reply with at most one short sentence after the tool runs.
+- document: ALWAYS call the document tool when the user asks you to write an essay, create a document, draft an article, or edit/write text inside the document editor. Do not output the document content as normal chat text; let the tool handle it.`,
         messages: await convertToModelMessages(resolvedMessages),
         tools: {
           chart: chartTool,
           weather: weatherTool,
           quiz: quizTool,
-          humanizer: humanizerTool(provider(model))
+          document: documentTool
         },
         providerOptions: {
           openrouter: {
