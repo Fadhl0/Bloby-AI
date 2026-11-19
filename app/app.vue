@@ -18,15 +18,15 @@ useHead({
 })
 
 const appName = useRuntimeConfig().public.name
-const title = `${appName}: AI Chatbot, MCQ Exam Generator & Humanizer`
-const description = `${appName} lets you build AI chatbots, get Bahçeşehir University info, generate interactive MCQ exams, and humanize text naturally. Smarter study tools in minutes.`
+const title = `${appName}: AI Chatbot, MCQ Exam Generator & Useful Tools`
+const description = `${appName} lets you build AI chatbots, generate interactive MCQ exams, and create documents. Smarter study tools in minutes.`
 
 useSeoMeta({
   title,
   description,
   ogTitle: title,
   ogDescription: description,
-  ogImage: 'https://ui.nuxt.com/assets/templates/nuxt/chat-light.png',
+  ogImage: './assets/main.png',
   twitterCard: 'summary_large_image'
 })
 </script>

@@ -78,9 +78,24 @@ async function onSubmit() {
 }
 
 const quickChats = [
-  'Who are you?',
-  'Give me 5 practical productivity habits',
-  'Why learn coding in the age of AI?'
+  {
+    id: 0,
+    title: 'Who are you?',
+    icon: 'i-lucide:bot',
+    color: 'hover:text-primary'
+  },
+  {
+    id: 1,
+    title: 'Give me 5 practical productivity habits',
+    icon: 'i-lucide:lightbulb',
+    color: 'hover:text-[#f5c60b]'
+  },
+  {
+    id: 2,
+    title: 'Why learn coding in the age of AI?',
+    icon: 'i-lucide:code-xml',
+    color: 'hover:text-[#22ea34]'
+  }
 ]
 
 const config = useRuntimeConfig()
@@ -120,13 +135,14 @@ const config = useRuntimeConfig()
           <div class="flex flex-wrap gap-2">
             <UButton
               v-for="quickChat in quickChats"
-              :key="quickChat"
-              :label="quickChat"
+              :key="quickChat.id"
+              :label="quickChat.title"
               size="sm"
+              :icon="quickChat.icon"
               color="neutral"
               variant="outline"
-              class="rounded-full"
-              @click="createChat(quickChat)"
+              :class="['rounded-full', 'cursor-pointer', quickChat.color]"
+              @click="createChat(quickChat.title)"
             />
           </div>
         </UContainer>
