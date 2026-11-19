@@ -24,6 +24,7 @@ const greeting = computed(() => {
 })
 
 const {
+  dropzoneRef,
   dragging,
   open,
   files,
