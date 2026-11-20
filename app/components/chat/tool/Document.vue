@@ -109,6 +109,11 @@ async function copyMarkdown() {
     })
   }
 }
+
+const editorMounted = ref(false)
+onMounted(() => {
+  editorMounted.value = true
+})
 </script>
 
 <template>
@@ -147,19 +152,15 @@ async function copyMarkdown() {
 
     <!-- Ready: Client-Only Editor with Matching SSR Fallback -->
     <div v-if="isReady">
-      <ClientOnly>
-        <ChatDocumentEditor v-model="content" />
+      <ChatDocumentEditor v-if="editorMounted" v-model="content" />
 
-        <template #fallback>
-          <div class="h-[70vh] p-6 space-y-3">
-            <USkeleton class="h-8 w-full" />
-            <USkeleton class="h-5 w-1/3" />
-            <USkeleton class="h-4 w-full" />
-            <USkeleton class="h-4 w-5/6" />
-            <USkeleton class="h-4 w-2/3" />
-          </div>
-        </template>
-      </ClientOnly>
+      <div v-else class="h-[70vh] p-6 space-y-3">
+        <USkeleton class="h-8 w-full" />
+        <USkeleton class="h-5 w-1/3" />
+        <USkeleton class="h-4 w-full" />
+        <USkeleton class="h-4 w-5/6" />
+        <USkeleton class="h-4 w-2/3" />
+      </div>
     </div>
 
     <!-- Error State -->

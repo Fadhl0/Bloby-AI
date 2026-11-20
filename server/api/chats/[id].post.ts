@@ -4,7 +4,6 @@ import { db, schema } from 'hub:db'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { blob } from 'hub:blob'
-import { documentTool } from '~~/shared/utils/tools/document'
 import { useOpenRouter } from '~~/server/utils/openrouter'
 
 defineRouteMeta({
