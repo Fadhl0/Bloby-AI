@@ -19,7 +19,7 @@ export default defineNuxtConfig({
   },
 
   $production: {
-    nitro: { preset: 'cloudflare_pages' },
+    nitro: { preset: 'cloudflare_pages', minify: false },
     hub: {
       db: {
         dialect: 'sqlite',
