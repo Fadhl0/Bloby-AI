@@ -19,7 +19,7 @@ export default defineNuxtConfig({
   },
 
   $production: {
-    nitro: { preset: 'cloudflare_pages', minify: false },
+    nitro: { preset: 'cloudflare_pages' },
     hub: {
       db: {
         dialect: 'sqlite',
@@ -54,6 +54,10 @@ export default defineNuxtConfig({
 
   build: {
     transpile: ['motion-v']
+  },
+
+  routeRules: {
+    '/chat/**': { ssr: false }
   },
 
   experimental: {

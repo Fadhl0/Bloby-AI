@@ -77,6 +77,9 @@ export default defineEventHandler(async (event) => {
     reasoning: z.boolean().default(false)
   }).parse)
 
+  const modelConfig = MODELS.find(m => m.value === model)
+  const enableReasoning = reasoning || !!modelConfig?.requireThinking
+
   const chat = await db.query.chats.findFirst({
     where: () => and(
       eq(schema.chats.id, id as string),
@@ -132,7 +135,7 @@ export default defineEventHandler(async (event) => {
       const result = streamText({
         abortSignal: abortController.signal,
         model: provider(model),
-        instructions: `You are **${runtimeConfig.public.name}** a knowledgeable and helpful AI assistant. an AI assistant created by **FADHL AL FADHILI** (GitHub: https://github.com/Fadhl0). ${session.user?.name ? `The user's name is ${session.user?.name}.` : ''} Your goal is to provide clear, accurate, and well-structured responses.
+        instructions: `You are **${runtimeConfig.public.name}**, a knowledgeable and helpful AI assistant created by **FADHL AL FADHILI** (GitHub: https://github.com/Fadhl0). ${session.user?.name ? `The user's name is ${session.user?.name}.` : ''} Your goal is to provide clear, accurate, and well-structured responses.
 
 **FORMATTING RULES (CRITICAL):**
 - ABSOLUTELY NO MARKDOWN HEADINGS: Never use #, ##, ###, ####, #####, or ######
@@ -161,7 +164,7 @@ export default defineEventHandler(async (event) => {
         },
         providerOptions: {
           openrouter: {
-            reasoning: reasoning
+            reasoning: enableReasoning
               ? { effort: 'medium' }
               : { enabled: false }
           }
@@ -181,7 +184,7 @@ export default defineEventHandler(async (event) => {
       writer.merge(toUIMessageStream({
         stream: result.stream,
         sendSources: true,
-        sendReasoning: reasoning
+        sendReasoning: enableReasoning
       }))
     },
     onEnd: async ({ messages }) => {
