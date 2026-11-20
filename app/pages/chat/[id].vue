@@ -110,7 +110,7 @@ async function saveEdit(message: UIMessage, text: string) {
     await $fetch(`/api/chats/${data.value!.id}/messages`, {
       method: 'DELETE',
       headers: { [headerName]: csrf },
-      body: { messageId: message.id, type: 'edit' }
+      query: { messageId: message.id, type: 'edit' }
     })
   } catch {
     toast.add({ description: 'Failed to save edit.', icon: 'i-lucide-alert-circle', color: 'error' })
@@ -126,7 +126,7 @@ async function regenerateMessage(message: UIMessage) {
     await $fetch(`/api/chats/${data.value!.id}/messages`, {
       method: 'DELETE',
       headers: { [headerName]: csrf },
-      body: { messageId: message.id, type: 'regenerate' }
+      query: { messageId: message.id, type: 'regenerate' }
     })
   } catch {
     toast.add({ description: 'Failed to regenerate.', icon: 'i-lucide-alert-circle', color: 'error' })
