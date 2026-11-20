@@ -52,6 +52,10 @@ export default defineNuxtConfig({
     }
   },
 
+  build: {
+    transpile: ['motion-v']
+  },
+
   experimental: {
     viewTransition: true
   },
@@ -104,12 +108,17 @@ export default defineNuxtConfig({
     },
     resolve: {
       dedupe: [
+        'vue',
+        'prosemirror-model',
         'prosemirror-model',
         'prosemirror-state',
         'prosemirror-transform',
         'prosemirror-view',
         '@tiptap/core'
       ]
+    },
+    ssr: {
+      noExternal: ['motion-v']
     }
   },
 
