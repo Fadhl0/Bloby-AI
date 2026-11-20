@@ -48,10 +48,6 @@ export function useEditorSuggestions<T extends EditorCustomHandlers>(_customHand
       type: 'label',
       label: 'Insert'
     }, {
-      kind: 'emoji',
-      label: 'Emoji',
-      icon: 'i-lucide-smile-plus'
-    }, {
       kind: 'table',
       label: 'Table',
       icon: 'i-lucide-table'

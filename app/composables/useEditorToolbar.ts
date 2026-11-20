@@ -102,45 +102,6 @@ export function useEditorToolbar<T extends EditorCustomHandlers>(_customHandlers
     icon: 'i-lucide-link'
   }]] satisfies EditorToolbarItem<T>[][])
 
-  const getImageToolbarItems = (editor: Editor): EditorToolbarItem<T>[][] => {
-    const node = editor.state.doc.nodeAt(editor.state.selection.from)
-
-    return [[{
-      icon: 'i-lucide-download',
-      to: node?.attrs?.src,
-      download: true,
-      tooltip: { text: 'Download' }
-    }, {
-      icon: 'i-lucide-refresh-cw',
-      tooltip: { text: 'Replace' },
-      onClick: () => {
-        const { state } = editor
-        const { selection } = state
-
-        const pos = selection.from
-        const node = state.doc.nodeAt(pos)
-
-        if (node && node.type.name === 'image') {
-          editor.chain().focus().deleteRange({ from: pos, to: pos + node.nodeSize }).insertContentAt(pos, { type: 'imageUpload' }).run()
-        }
-      }
-    }], [{
-      icon: 'i-lucide-trash',
-      tooltip: { text: 'Delete' },
-      onClick: () => {
-        const { state } = editor
-        const { selection } = state
-
-        const pos = selection.from
-        const node = state.doc.nodeAt(pos)
-
-        if (node && node.type.name === 'image') {
-          editor.chain().focus().deleteRange({ from: pos, to: pos + node.nodeSize }).run()
-        }
-      }
-    }]]
-  }
-
   const getTableToolbarItems = (editor: Editor): EditorToolbarItem<T>[][] => {
     return [[{
       icon: 'i-lucide-between-vertical-start',
@@ -190,7 +151,6 @@ export function useEditorToolbar<T extends EditorCustomHandlers>(_customHandlers
   return {
     toolbarItems,
     bubbleToolbarItems,
-    getImageToolbarItems,
     getTableToolbarItems
   }
 }
